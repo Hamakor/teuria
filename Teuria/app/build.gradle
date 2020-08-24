@@ -1,0 +1,60 @@
+apply plugin: 'com.android.application'
+
+android {
+    signingConfigs {
+    }
+
+    compileSdkVersion 23
+    //buildToolsVersion "23.0.3"
+
+    defaultConfig {
+        testInstrumentationRunner "android.test.InstrumentationTestRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            // APK file rename
+            outputFileName = "Teuria-${variant.versionName}-${variant.versionCode}-${variant.name}.apk"
+        }
+        variant.outputs.each { output ->
+            if (variant.getBuildType().isMinifyEnabled()) {
+                variant.assembleProvider.configure {
+                    it.doLast {
+                        // Mapping file rename
+                        String mappingFileName = output.outputFile.name.replace("app-", "Teuria-${variant.versionName}-${variant.versionCode}-").replace(".apk", "--mapping.txt")
+                        println "${variant.name}: mappingFileName = $mappingFileName"
+                        copy {
+                            from variant.mappingFile
+                            into "${output.outputFile.parent}"
+                            rename { String fileName -> mappingFileName }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    flavorDimensions 'style'
+    productFlavors {
+        classical {
+            dimension 'style'
+            applicationId "il.co.zak.gplv3.hamakor.teuria"
+            testApplicationId "il.co.zak.gplv3.hamakor.teuria.test"
+            versionCode 12
+            versionName "0.4"
+            minSdkVersion 8
+            targetSdkVersion 16
+        }
+    }
+}
+
+dependencies {
+    implementation 'com.android.support:support-v4:23.0.0'
+}
